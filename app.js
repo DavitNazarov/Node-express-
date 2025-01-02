@@ -1,25 +1,28 @@
-const http = require("http");
+import express from "express";
+import pkg from "body-parser";
+const { urlencoded } = pkg;
 
-const server = http.createServer((req, res) => {
-  console.log("INCOMING REQUEST");
-  console.log(req.method, req.url);
+const app = express();
 
-  if (req.method === "POST") {
-    let body = "";
-    req.on("end", () => {
-      const userName = body.split("=")[1];
-      res.end("<h1>" + userName + "</h1>");
-    });
+// Middleware to parse form data
+app.use(urlencoded({ extended: false }));
 
-    req.on("data", (chunk) => {
-      body += chunk;
-    });
-  } else {
-    res.setHeader("Content-Type", "text/html");
-    res.end(
-      "<form method='POST'><input type='text' name='username'><button type='submit' >Create User</button></input> !</form> "
-    );
-  }
+// Serve the form
+app.get("/", (req, res) => {
+  res.send(`
+    <form action="/create-user" method="POST">
+      <input type="text" name="username" required>
+      <button type="submit">Create User</button>
+    </form>
+  `);
 });
 
-server.listen(5000);
+// Handle form submission
+app.post("/create-user", (req, res) => {
+  res.send(`<h1>USER: ${req.body.username}</h1>`);
+});
+
+// Start the server
+app.listen(5000, () => {
+  console.log("Server is running on http://localhost:5000");
+});
